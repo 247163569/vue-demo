@@ -1,0 +1,604 @@
+全局安装vue-cli
+
+npm install vue-cli -g
+
+初始化项目
+
+vue init webpack 项目名称  webpack是使用webpack来进行项目管理,可以使用
+webpack-simple来创建简单的项目.
+
+初始化的时候会提示你
+
+project name  项目名称
+
+project description 项目描述
+
+author 作者
+
+vue build standalone
+
+use ESLint to lint you code 是否使用代码检查工具
+
+setup unit tests with karma + Mocha 代码测试工具
+
+setup e2e tests with NightWatch 使用
+
+接下来:
+
+cd 项目
+npm install
+npm run dev 这里的意思是直接运行package.json里的script字段里面的dev
+也就是node build / dev-server.js的意思
+
+vue后缀的文件由三部分组成,<tempalte>,<style>,<script>三个部分
+
+整个项目只有两个地址,/主页和/detail详情,分别用了三个组件放在components里面DetailHeader.vue
+homeHeader.vue以及list.vue
+
+删除app.vue文件，新建pages文件夹，创建Home.vue以及Detail.vue文件
+
+在components里面新建组件DetailHeader.vue和HomeHeader.vue以及List.vue
+
+修改index.html
+
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>first-vue</title>
+    <style type="text/css">
+        * { margin: 0; padding: 0; }
+        html,body { background: #eee; }
+        ul,li { list-style: none; }
+        a { text-decoration: none; }
+        img { vertical-align: middle; }
+        /* 跳转页面动画 */
+        .slide-enter,
+        .slide_back-enter {
+            position: absolute;
+            width: 100%;
+        }
+        .slide-leave,
+        .slide_back-leave {
+            position: absolute;
+            width: 100%;
+        }
+        .slide-enter-active,
+        .slide_back-enter-active {
+            transition: all 0.3s linear;
+        }
+        .slide-leave-active {
+            position: absolute;
+            transition: all 0.3s linear;
+            transform: translate(-100%);
+        }
+        .slide-enter{
+            transform: translateX(100%);
+        }
+        .slide_back-leave-active {
+            position: absolute;
+            transition: all 0.3s linear;
+            transform: translate(100%);
+        }
+        .slide_back-enter {
+            transform: translateX(-100%);
+        }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+        <transition :name="transitionName">
+            <router-view></router-view>
+        </transition>
+    </div>
+
+    <script type="text/javascript">
+
+        // 计算html的font-size
+        (function(){
+            function resizeBaseFontSize(){
+                var rootHtml = document.documentElement,
+                    deviceWidth = rootHtml.clientWidth;
+
+                if(deviceWidth > 640){
+                    deviceWidth = 640;
+                }
+
+                rootHtml.style.fontSize = deviceWidth / 7.5 + "px";
+            }
+
+            resizeBaseFontSize();
+
+            window.addEventListener("resize", resizeBaseFontSize, false);
+            window.addEventListener("orientationchange", resizeBaseFontSize, false);
+        })();
+    </script>
+  </body>
+</html>
+
+
+修改main.js
+
+// main.js
+
+// 导入Vue，这个是必需的，在使用Vue之前，必须先导入
+import Vue from 'vue'
+
+// 导入 vue-router，并使用
+import VueRouter from 'vue-router'
+Vue.use(VueRouter)
+
+// 导入 pages 下的 Home.vue
+import Home from './pages/Home'
+import Detail from './pages/Detail'
+
+// 定义路由配置
+const routes = [
+    {
+        path: '/',
+        component: Home
+    },
+    {
+        path: '/detail',
+        component: Detail
+    }
+]
+
+// 创建路由实例
+const router = new VueRouter({
+    routes
+})
+
+// 创建 Vue 实例
+new Vue({
+  el: '#app',
+  data(){
+    return {
+        transitionName: 'slide'
+    }
+  },
+  router, // 在vue实例配置中，用router
+  watch: {
+    // 监视路由，参数为要目标路由和当前页面的路由
+    '$route' (to, from){
+        const toDepth = to.path.substring(0, to.path.length-2).split('/').length
+        // 官方给出的例子为 const toDepth = to.path.split('/').length 由于现在只有两个路由路径'/'和'/detail'
+        // 按照官方给的例子，这两个路由路径深度都为 2 ，所以，这里稍作调整，不知道有什么不妥
+        // 但目前在这个demo中能正常运行，如果知道更好的方法，欢迎留言赐教
+        const fromDepth = from.path.substring(0, from.path.length-2).split('/').length
+        this.transitionName = toDepth < fromDepth ? 'slide_back' : 'slide'
+        // 根据路由深度，来判断是该从右侧进入还是该从左侧进入
+    }
+  }
+})
+
+HomeHeader.vue
+
+<!-- HomeHeader.vue -->
+<template>
+    <header class="header">
+        <div class="header_inner">
+            <div class="header_cont">主页</div>
+        </div>
+    </header>
+</template>
+
+<style>
+    .header {
+        height: 0.88rem;
+    }
+    .header_inner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 99;
+        max-width: 640px;
+        height: 0.88rem;
+        box-sizing: border-box;
+        margin: 0 auto;
+        padding: 0 0.24rem;
+        border-bottom: 0.02rem solid #80ccd6;
+        background-color: #fff;
+    }
+    .header_cont {
+        text-align: center;
+        padding: 0 0.4rem;
+        line-height: 0.86rem;
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+
+
+List.vue
+
+<!-- List.vue -->
+<template>
+    <li class="sec_li">
+        <router-link to="/detail" class="lp_li_a">
+            <div class="lp_li_imgWrap">
+                <img src="../assets/img/lp_01.jpg" alt="">
+            </div>
+            <p class="lp_li_name">{{ title }}</p>
+            <p class="lp_li_price">￥{{ price }}元</p>
+        </router-link>
+    </li>
+</template>
+
+<style scoped>
+    .sec_li {
+        float: left;
+        width: 50%;
+        margin-bottom: 0.1rem;
+    }
+    .lp_li_a {
+        display: block;
+        padding: 0.3rem 0;
+        margin: 0 0.05rem;
+        text-align: center;
+        background: #fff;
+    }
+    .lp_li_imgWrap {
+        padding: 0.24rem 0;
+    }
+    .lp_li_imgWrap > img {
+        width: auto;
+        height: 2.3rem;
+    }
+    .lp_li_name {
+        height: 0.5rem;
+        line-height: 0.5rem;
+        font-size: 16px;
+        color: #333;
+    }
+    .lp_li_price {
+        height: 0.5rem;
+        line-height: 0.5rem;
+        font-size: 16px;
+        color: #fb3b3b;
+    }
+</style>
+
+<script>
+    export default {
+        props: ['price', 'title']
+    }
+</script>
+
+DetailHeader.vue
+
+<!-- DetailHeader.vue -->
+<template>
+    <header class="header">
+        <div class="header_inner flexWrap">
+            <div
+                id="header_btn_nav"
+                class="header_btn header_btn_back"
+                v-on:click="goBack"
+                >返回</div>
+            <div class="header_cont flex">详情</div>
+            <div class="header_btn header_btn_cart"></div>
+        </div>
+    </header>
+</template>
+
+<style>
+    .flexWrap {
+        display: -webkit-flex;
+        display: flex;
+    }
+    .flex {
+        flex: 1;
+    }
+    .header {
+        height: 0.88rem;
+    }
+    .header_inner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 99;
+        max-width: 640px;
+        height: 0.88rem;
+        box-sizing: border-box;
+        margin: 0 auto;
+        padding: 0 0.24rem;
+        border-bottom: 0.02rem solid #80ccd6;
+        background-color: #fff;
+    }
+    .header_btn {
+        width: 0.5rem;
+        height: 100%;
+        background-repeat: no-repeat;
+    }
+    .header_btn_back {
+        line-height: 0.86rem;
+    }
+    .header_cont {
+        text-align: center;
+        padding: 0 0.4rem;
+        line-height: 0.86rem;
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .header_btn:active {
+        opacity: 0.7;
+    }
+</style>
+<script>
+    export default {
+        methods: {
+            goBack(){
+                window.history.back();
+            }
+        }
+    }
+</script>
+
+home.vue
+
+
+<!-- Home.vue -->
+<template>
+    <div class="container">
+        <!-- 由于html不区分大小写，所以js中驼峰命名方式在html中要改成用短横线连接的形式 -->
+        <home-header></home-header>
+        <div class="content">
+            <ul class="cont_ul">
+                <list
+                    v-for="item in items"
+                    :price="item.price"
+                    :title="item.title">
+                </list>
+            </ul>
+        </div>
+    </div>
+</template>
+<style>
+    .container {
+        max-width: 640px;
+        margin: 0 auto;
+        overflow-x: hidden;
+    }
+    .cont_ul {
+        padding-top: 0.05rem;
+        margin: 0 -0.12rem;
+    }
+    .cont_ul:after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        clear: both;
+    }
+</style>
+<script>
+    // 导入要用到的子组件
+    import HomeHeader from '../components/HomeHeader'
+    import List from '../components/List'
+
+    export default {
+        data () {
+            return {
+                items: [
+                    { price: "129.00", title: "大学" },
+                    { price: "256.00", title: "中庸" },
+                    { price: "399.00", title: "论语" },
+                    { price: "998.00", title: "孟子" },
+                    { price: "99.00", title: "道德经" },
+                    { price: "89.00", title: "老子" },
+                    { price: "188.00", title: "金刚经" },
+                    { price: "209.00", title: "易筋经" },
+                ]
+            }
+        },
+        // 在components字段中，包含导入的子组件
+        components: {
+            HomeHeader,
+            List
+        }
+    }
+</script>
+
+Detail.vue
+
+<!-- Detail.vue -->
+<template>
+    <div class="detail">
+        <detail-header></detail-header>
+        <img src="../assets/img/lp_01.jpg" alt="">
+        <p>崇贤馆始置唐代太宗朝。1999年，李克先生及志同道合者复兴其宗旨。以积累、传播中华优秀传统文化，提供全新国学体验馆为宏愿。</p>
+        <p>其间，在季羡林、冯其庸等国学大师及著名文史学家傅璇琮、毛佩琦先生指导下，耕注先贤原典，以宣纸线装精品形式呈奉世人。作为一家国学传播机构，崇贤馆始终致力于中华传统文化的传承和推广，以古籍线装宣纸书的形式，对浩繁的史海巨著进行经典复刻。不仅如此，崇贤馆还延请了傅璇琮、毛佩奇等诸位在国学界内享有盛誉的专家和学者担纲学术顾问，以精益求精的治学态度面对每一部崇贤馆的作品，使之成为学术史中无尚的精品。</p>
+    </div>
+</template>
+<style>
+    .detail {
+        padding: 0.24rem;
+        font-size: 12px;
+    }
+    img {
+        display: block;
+        width: 80%;
+        margin: 0 auto 0.2rem;
+    }
+    p {
+        font-size: 14px;
+        line-height: 0.5rem;
+        text-align: justify;
+        padding-bottom: 0.24rem;
+    }
+</style>
+<script>
+    import DetailHeader from '../components/DetailHeader'
+
+    export default {
+        components: {
+            DetailHeader
+        }
+    }
+</script>
+
+
+npm install vue-resource --save
+
+在根目录下准备一个data.json文件
+{
+    "books": [
+        { "price": "111.00", "title": "语文", "img": "http://imgsrc.baidu.com/forum/w%3D580/sign=688d19b6422309f7e76fad1a420f0c39/0e143912b31bb051dfdebf0a327adab44bede0f9.jpg" },
+        { "price": "123.00", "title": "数学", "img": "http://shopimg.kongfz.com.cn/20130826/1746508/1746508YTGtm0_b.jpg"},
+        { "price": "113.00", "title": "英语", "img": "http://www.shiyi910.com/UploadFiles/2014-01/170/2014011322414554305.jpg"},
+        { "price": "112.00", "title": "物理", "img": "http://f.hiphotos.baidu.com/zhidao/wh%3D450%2C600/sign=b62ac53d4b36acaf59b59ef849e9a126/f603918fa0ec08fa2cf895a359ee3d6d55fbda3e.jpg"}
+    ]
+}
+
+
+修改dev-server.js文件，在大概第19行左右的 var app = express()之后，添加上如下内容
+
+var appData = require('../data.json')
+var books = appData.books
+
+var apiRoutes = express.Router()
+apiRoutes.get('/books', function(req, res){
+  res.json({
+    data: books
+  })
+})
+
+app.use('/api', apiRoutes)
+
+修改main.js
+
+// 导入 vue-resource，并使用
+import VueResource from 'vue-resource'
+Vue.use(VueResource)
+
+修改Home.vue
+
+<!-- Home.vue -->
+<template>
+    <div class="container">
+        <!-- 由于html不区分大小写，所以js中驼峰命名方式在html中要改成用短横线连接的形式 -->
+        <home-header></home-header>
+        <div class="content">
+            <ul class="cont_ul">
+                <list
+                    v-for="item in items"
+                    :price="item.price"
+                    :title="item.title"
+                    :img="item.img">
+                <!-- 通过v-bind（简写为“:”）绑定props来从父组件给子组件传值 -->
+                </list>
+            </ul>
+        </div>
+    </div>
+</template>
+<style>
+    .container {
+        max-width: 640px;
+        margin: 0 auto;
+        overflow-x: hidden;
+    }
+    .cont_ul {
+        padding-top: 0.05rem;
+        margin: 0 -0.12rem;
+    }
+    .cont_ul:after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        clear: both;
+    }
+</style>
+<script>
+    // 导入要用到的子组件
+    import HomeHeader from '../components/HomeHeader'
+    import List from '../components/List'
+    export default {
+        data () {
+            return {
+                items: []
+            }
+        },
+        // 在components字段中，包含导入的子组件
+        components: {
+            HomeHeader,
+            List
+        },
+        // 在组件创建完成时，执行的钩子函数
+        created (){
+            // 在main.js里导入并使用vue-resource之后，就可以通过this.$http来使用vue-resource了，这里我们用到了get方法
+            this.$http.get('/api/books').then((data) => {
+                // 由于请求成功返回的是Promise对象，我们要从data.body.data拿到books数组
+                this.items = data.body.data;
+            })
+        }
+    }
+</script>
+
+List.vue
+
+<!-- List.vue -->
+<template>
+    <li class="sec_li">
+        <router-link to="/detail" class="lp_li_a">
+            <div class="lp_li_imgWrap">
+                <img :src="img" alt="">
+            </div>
+            <p class="lp_li_name">{{ title }}</p>
+            <p class="lp_li_price">￥{{ price }}元</p>
+        </router-link>
+    </li>
+</template>
+
+<style scoped>
+    .sec_li {
+        float: left;
+        width: 50%;
+        margin-bottom: 0.1rem;
+    }
+    .lp_li_a {
+        display: block;
+        padding: 0.3rem 0;
+        margin: 0 0.05rem;
+        text-align: center;
+        background: #fff;
+    }
+    .lp_li_imgWrap {
+        padding: 0.24rem 0;
+    }
+    .lp_li_imgWrap > img {
+        width: auto;
+        height: 2.3rem;
+    }
+    .lp_li_name {
+        height: 0.5rem;
+        line-height: 0.5rem;
+        font-size: 16px;
+        color: #333;
+    }
+    .lp_li_price {
+        height: 0.5rem;
+        line-height: 0.5rem;
+        font-size: 16px;
+        color: #fb3b3b;
+    }
+</style>
+
+<script>
+    export default {
+        // 接收父组件传过来的以下几个属性
+        props: ['price', 'title', 'img'],
+    }
+</script>
+
+
+
